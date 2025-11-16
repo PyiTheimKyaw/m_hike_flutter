@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import '../models/hike.dart';
 import 'observations_list_screen.dart';
@@ -74,6 +76,21 @@ class HikeDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Photo section
+            if (hike.photoPath != null)
+              Card(
+                elevation: 2,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(
+                    File(hike.photoPath!),
+                    height: 200,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            if (hike.photoPath != null) const SizedBox(height: 16),
             Card(
               elevation: 2,
               child: Padding(
@@ -134,28 +151,87 @@ class HikeDetailScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ObservationsListScreen(hike: hike),
+            Row(
+              children: [
+                if (hike.latitude != null && hike.longitude != null)
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => Scaffold(
+                              appBar: AppBar(
+                                title: Text('${hike.name} Location'),
+                                backgroundColor: Colors.green.shade700,
+                                foregroundColor: Colors.white,
+                              ),
+                              body: GoogleMap(
+                                initialCameraPosition: CameraPosition(
+                                  target: LatLng(
+                                    hike.latitude!,
+                                    hike.longitude!,
+                                  ),
+                                  zoom: 15,
+                                ),
+                                markers: {
+                                  Marker(
+                                    markerId: MarkerId('hike_location'),
+                                    position: LatLng(
+                                      hike.latitude!,
+                                      hike.longitude!,
+                                    ),
+                                    infoWindow: InfoWindow(
+                                      title: hike.name,
+                                      snippet: hike.location,
+                                    ),
+                                  ),
+                                },
+                                myLocationEnabled: true,
+                                myLocationButtonEnabled: true,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.map),
+                      label: const Text('View on Map'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade700,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
                     ),
-                  );
-                },
-                icon: const Icon(Icons.visibility),
-                label: const Text('View Observations'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green.shade700,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                  ),
+                if (hike.latitude != null && hike.longitude != null)
+                  const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ObservationsListScreen(hike: hike),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.visibility),
+                    label: const Text('View Observations'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green.shade700,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
           ],
         ),

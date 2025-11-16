@@ -35,7 +35,12 @@ class DatabaseHelper {
       dbPath = join(await getDatabasesPath(), filePath);
     }
 
-    return await openDatabase(dbPath, version: 1, onCreate: _createDB);
+    return await openDatabase(
+      dbPath,
+      version: 2,
+      onCreate: _createDB,
+      onUpgrade: _upgradeDB,
+    );
   }
 
   Future<void> _createDB(Database db, int version) async {
@@ -44,6 +49,7 @@ class DatabaseHelper {
     const textTypeNullable = 'TEXT';
     const intType = 'INTEGER NOT NULL';
     const dateType = 'TEXT NOT NULL';
+    const realTypeNullable = 'REAL';
 
     // Create hikes table
     await db.execute('''
@@ -57,7 +63,10 @@ class DatabaseHelper {
         difficulty $textType,
         description $textTypeNullable,
         weatherConditions $textTypeNullable,
-        estimatedDuration $textTypeNullable
+        estimatedDuration $textTypeNullable,
+        photoPath $textTypeNullable,
+        latitude $realTypeNullable,
+        longitude $realTypeNullable
       )
     ''');
 
@@ -69,9 +78,24 @@ class DatabaseHelper {
         observation $textType,
         time $dateType,
         comments $textTypeNullable,
+        photoPath $textTypeNullable,
         FOREIGN KEY (hikeId) REFERENCES hikes (id) ON DELETE CASCADE
       )
     ''');
+  }
+
+  Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Add new columns for enhancements
+      try {
+        await db.execute('ALTER TABLE hikes ADD COLUMN photoPath TEXT');
+        await db.execute('ALTER TABLE hikes ADD COLUMN latitude REAL');
+        await db.execute('ALTER TABLE hikes ADD COLUMN longitude REAL');
+        await db.execute('ALTER TABLE observations ADD COLUMN photoPath TEXT');
+      } catch (e) {
+        // Columns might already exist, ignore error
+      }
+    }
   }
 
   // ========== HIKE OPERATIONS ==========

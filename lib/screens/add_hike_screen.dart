@@ -1,6 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../models/hike.dart';
+import '../utils/image_helper.dart';
+import '../utils/location_helper.dart';
 import 'hike_confirmation_screen.dart';
 
 class AddHikeScreen extends StatefulWidget {
@@ -27,6 +31,10 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
   DateTime? _selectedDate;
   String? _parkingAvailable;
   String? _difficulty;
+  String? _photoPath;
+  double? _latitude;
+  double? _longitude;
+  bool _isGettingLocation = false;
 
   // Difficulty options
   final List<String> _difficultyOptions = [
@@ -51,6 +59,9 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
       _descriptionController.text = hike.description ?? '';
       _weatherConditionsController.text = hike.weatherConditions ?? '';
       _estimatedDurationController.text = hike.estimatedDuration ?? '';
+      _photoPath = hike.photoPath;
+      _latitude = hike.latitude;
+      _longitude = hike.longitude;
     }
   }
 
@@ -130,6 +141,9 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
         estimatedDuration: _estimatedDurationController.text.trim().isEmpty
             ? null
             : _estimatedDurationController.text.trim(),
+        photoPath: _photoPath,
+        latitude: _latitude,
+        longitude: _longitude,
       );
 
       // Navigate to confirmation screen
@@ -323,6 +337,182 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
                 hintText: 'e.g., 2 hours, 3-4 hours',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.access_time),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Photo section
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Hike Photo (Optional)',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    if (_photoPath != null)
+                      Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(
+                              File(_photoPath!),
+                              height: 150,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () {
+                                setState(() {
+                                  _photoPath = null;
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      )
+                    else
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () async {
+                                final source = await showDialog<ImageSource>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Select Image Source'),
+                                    actions: [
+                                      TextButton.icon(
+                                        icon: const Icon(Icons.camera_alt),
+                                        label: const Text('Camera'),
+                                        onPressed: () => Navigator.pop(
+                                          context,
+                                          ImageSource.camera,
+                                        ),
+                                      ),
+                                      TextButton.icon(
+                                        icon: const Icon(Icons.photo_library),
+                                        label: const Text('Gallery'),
+                                        onPressed: () => Navigator.pop(
+                                          context,
+                                          ImageSource.gallery,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (source != null) {
+                                  final path = await ImageHelper.pickImage(
+                                    source: source,
+                                  );
+                                  if (path != null && mounted) {
+                                    setState(() {
+                                      _photoPath = path;
+                                    });
+                                  }
+                                }
+                              },
+                              icon: const Icon(Icons.add_photo_alternate),
+                              label: const Text('Add Photo'),
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // GPS Location section
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'GPS Location (Optional)',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    if (_latitude != null && _longitude != null)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Latitude: ${_latitude!.toStringAsFixed(6)}'),
+                          Text('Longitude: ${_longitude!.toStringAsFixed(6)}'),
+                          const SizedBox(height: 8),
+                          TextButton.icon(
+                            icon: const Icon(Icons.delete),
+                            label: const Text('Remove Location'),
+                            onPressed: () {
+                              setState(() {
+                                _latitude = null;
+                                _longitude = null;
+                              });
+                            },
+                          ),
+                        ],
+                      )
+                    else
+                      OutlinedButton.icon(
+                        onPressed: _isGettingLocation
+                            ? null
+                            : () async {
+                                setState(() => _isGettingLocation = true);
+                                final location =
+                                    await LocationHelper.getCurrentLocation();
+                                setState(() => _isGettingLocation = false);
+                                if (location != null && mounted) {
+                                  if (location.containsKey('error')) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(location['error']),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  } else {
+                                    setState(() {
+                                      _latitude = location['latitude'];
+                                      _longitude = location['longitude'];
+                                      _locationController.text =
+                                          location['address'];
+                                    });
+                                  }
+                                }
+                              },
+                        icon: _isGettingLocation
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.my_location),
+                        label: Text(
+                          _isGettingLocation
+                              ? 'Getting Location...'
+                              : 'Get Current Location',
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 24),

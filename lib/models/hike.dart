@@ -9,6 +9,10 @@ class Hike {
   final String? description; // Optional
   final String? weatherConditions; // Optional - creative field 1
   final String? estimatedDuration; // Optional - creative field 2
+  // Enhancement fields
+  final String? photoPath; // Path to hike photo
+  final double? latitude; // GPS latitude
+  final double? longitude; // GPS longitude
 
   Hike({
     this.id,
@@ -21,6 +25,9 @@ class Hike {
     this.description,
     this.weatherConditions,
     this.estimatedDuration,
+    this.photoPath,
+    this.latitude,
+    this.longitude,
   });
 
   // Convert to Map for database storage
@@ -36,6 +43,9 @@ class Hike {
       'description': description,
       'weatherConditions': weatherConditions,
       'estimatedDuration': estimatedDuration,
+      'photoPath': photoPath,
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 
@@ -52,6 +62,13 @@ class Hike {
       description: map['description'] as String?,
       weatherConditions: map['weatherConditions'] as String?,
       estimatedDuration: map['estimatedDuration'] as String?,
+      photoPath: map['photoPath'] as String?,
+      latitude: map['latitude'] != null
+          ? (map['latitude'] as num).toDouble()
+          : null,
+      longitude: map['longitude'] != null
+          ? (map['longitude'] as num).toDouble()
+          : null,
     );
   }
 
@@ -67,6 +84,9 @@ class Hike {
     String? description,
     String? weatherConditions,
     String? estimatedDuration,
+    String? photoPath,
+    double? latitude,
+    double? longitude,
   }) {
     return Hike(
       id: id ?? this.id,
@@ -79,6 +99,9 @@ class Hike {
       description: description ?? this.description,
       weatherConditions: weatherConditions ?? this.weatherConditions,
       estimatedDuration: estimatedDuration ?? this.estimatedDuration,
+      photoPath: photoPath ?? this.photoPath,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
     );
   }
 }

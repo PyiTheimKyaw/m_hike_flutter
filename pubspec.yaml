@@ -39,6 +39,15 @@ dependencies:
   sqflite_common_ffi: ^2.3.0
   path: ^1.8.3
   path_provider: ^2.1.1
+  # Camera and image picker
+  image_picker: ^1.0.7
+  # Location services
+  geolocator: ^10.1.0
+  geocoding: ^2.1.1
+  # Maps
+  google_maps_flutter: ^2.5.0
+  # HTTP for weather API
+  http: ^1.1.2
 
 dev_dependencies:
   flutter_test:

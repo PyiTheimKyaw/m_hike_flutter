@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/hike.dart';
@@ -145,66 +146,82 @@ class _ObservationsListScreenState extends State<ObservationsListScreen> {
                       horizontal: 8,
                       vertical: 4,
                     ),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.green.shade700,
-                        child: const Icon(
-                          Icons.visibility,
-                          color: Colors.white,
-                        ),
-                      ),
-                      title: Text(
-                        observation.observation,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Time: ${DateFormat('yyyy-MM-dd HH:mm').format(observation.time)}',
-                          ),
-                          if (observation.comments != null &&
-                              observation.comments!.isNotEmpty)
-                            Text('Comments: ${observation.comments}'),
-                        ],
-                      ),
-                      trailing: PopupMenuButton(
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'edit',
-                            child: Row(
-                              children: [
-                                Icon(Icons.edit),
-                                SizedBox(width: 8),
-                                Text('Edit'),
-                              ],
+                    child: Column(
+                      children: [
+                        if (observation.photoPath != null)
+                          ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(4),
+                            ),
+                            child: Image.file(
+                              File(observation.photoPath!),
+                              height: 150,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
                             ),
                           ),
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Row(
-                              children: [
-                                Icon(Icons.delete, color: Colors.red),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Delete',
-                                  style: TextStyle(color: Colors.red),
+                        ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: Colors.green.shade700,
+                            child: const Icon(
+                              Icons.visibility,
+                              color: Colors.white,
+                            ),
+                          ),
+                          title: Text(
+                            observation.observation,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Time: ${DateFormat('yyyy-MM-dd HH:mm').format(observation.time)}',
+                              ),
+                              if (observation.comments != null &&
+                                  observation.comments!.isNotEmpty)
+                                Text('Comments: ${observation.comments}'),
+                            ],
+                          ),
+                          trailing: PopupMenuButton(
+                            itemBuilder: (context) => [
+                              const PopupMenuItem(
+                                value: 'edit',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.edit),
+                                    SizedBox(width: 8),
+                                    Text('Edit'),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                              const PopupMenuItem(
+                                value: 'delete',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.delete, color: Colors.red),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Delete',
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                            onSelected: (value) {
+                              if (value == 'edit') {
+                                _editObservation(observation);
+                              } else if (value == 'delete') {
+                                _deleteObservation(observation);
+                              }
+                            },
                           ),
-                        ],
-                        onSelected: (value) {
-                          if (value == 'edit') {
+                          onTap: () {
                             _editObservation(observation);
-                          } else if (value == 'delete') {
-                            _deleteObservation(observation);
-                          }
-                        },
-                      ),
-                      onTap: () {
-                        _editObservation(observation);
-                      },
+                          },
+                        ),
+                      ],
                     ),
                   );
                 },

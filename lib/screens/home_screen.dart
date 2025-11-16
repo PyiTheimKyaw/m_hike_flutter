@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'add_hike_screen.dart';
 import 'hikes_list_screen.dart';
 import 'search_screen.dart';
+import 'hike_map_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -94,6 +95,21 @@ class HomeScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const SearchScreen()),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            _buildFeatureButton(
+              context,
+              icon: Icons.map,
+              title: 'View on Map',
+              subtitle: 'See all hike locations on a map',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HikeMapScreen(),
+                  ),
                 );
               },
             ),

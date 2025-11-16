@@ -1,8 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../models/hike.dart';
 import '../models/observation.dart';
 import '../database/database_helper.dart';
+import '../utils/image_helper.dart';
 
 class AddObservationScreen extends StatefulWidget {
   final Hike hike;
@@ -19,6 +22,7 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
   final _observationController = TextEditingController();
   final _commentsController = TextEditingController();
   DateTime _selectedDateTime = DateTime.now();
+  String? _photoPath;
 
   @override
   void initState() {
@@ -28,6 +32,7 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
       _observationController.text = obs.observation;
       _commentsController.text = obs.comments ?? '';
       _selectedDateTime = obs.time;
+      _photoPath = obs.photoPath;
     }
   }
 
@@ -77,6 +82,7 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
         comments: _commentsController.text.trim().isEmpty
             ? null
             : _commentsController.text.trim(),
+        photoPath: _photoPath,
       );
 
       try {
@@ -209,6 +215,94 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
                 prefixIcon: Icon(Icons.comment),
               ),
               maxLines: 4,
+            ),
+            const SizedBox(height: 16),
+
+            // Photo section
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Observation Photo (Optional)',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    if (_photoPath != null)
+                      Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(
+                              File(_photoPath!),
+                              height: 150,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () {
+                                setState(() {
+                                  _photoPath = null;
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      )
+                    else
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          final source = await showDialog<ImageSource>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Select Image Source'),
+                              actions: [
+                                TextButton.icon(
+                                  icon: const Icon(Icons.camera_alt),
+                                  label: const Text('Camera'),
+                                  onPressed: () => Navigator.pop(
+                                    context,
+                                    ImageSource.camera,
+                                  ),
+                                ),
+                                TextButton.icon(
+                                  icon: const Icon(Icons.photo_library),
+                                  label: const Text('Gallery'),
+                                  onPressed: () => Navigator.pop(
+                                    context,
+                                    ImageSource.gallery,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (source != null) {
+                            final path = await ImageHelper.pickImage(
+                              source: source,
+                            );
+                            if (path != null && mounted) {
+                              setState(() {
+                                _photoPath = path;
+                              });
+                            }
+                          }
+                        },
+                        icon: const Icon(Icons.add_photo_alternate),
+                        label: const Text('Add Photo'),
+                      ),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: 24),
 
