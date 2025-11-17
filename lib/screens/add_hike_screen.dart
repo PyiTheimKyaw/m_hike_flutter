@@ -29,6 +29,9 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
 
   // Error states
   bool _nameError = false;
+  bool _locationError = false;
+  bool _lengthError = false;
+  String? _lengthErrorMessage;
 
   @override
   void initState() {
@@ -136,57 +139,77 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
   }
 
   Future<void> _validateAndSave() async {
-    // Reset error state
+    // Reset error states
     setState(() {
       _nameError = false;
+      _locationError = false;
+      _lengthError = false;
+      _lengthErrorMessage = null;
     });
 
     // Validate required fields
     bool isValid = true;
+    List<String> missingFields = [];
 
     if (_nameController.text.trim().isEmpty) {
       setState(() {
         _nameError = true;
       });
       isValid = false;
+      missingFields.add('Hike Name');
     }
 
     if (_locationController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Location is required'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      setState(() {
+        _locationError = true;
+      });
       isValid = false;
+      missingFields.add('Location');
     }
 
     if (_lengthController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Length is required'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      setState(() {
+        _lengthError = true;
+        _lengthErrorMessage = 'Length is required';
+      });
       isValid = false;
+      missingFields.add('Length');
+    } else {
+      // Parse length (convert miles to km for storage)
+      final lengthInMiles = double.tryParse(_lengthController.text.trim());
+      if (lengthInMiles == null || lengthInMiles <= 0) {
+        setState(() {
+          _lengthError = true;
+          _lengthErrorMessage = 'Please enter a valid length';
+        });
+        isValid = false;
+      }
     }
 
     if (!isValid) {
+      // Show dialog if there are missing required fields
+      if (missingFields.isNotEmpty) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            title: const Text('Required Fields Missing'),
+            content: Text(
+              'Please fill all required fields:\n\n• ${missingFields.join('\n• ')}',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
       return;
     }
 
-    // Parse length (convert miles to km for storage)
-    final lengthInMiles = double.tryParse(_lengthController.text.trim());
-    if (lengthInMiles == null || lengthInMiles <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a valid length'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
+    final lengthInMiles = double.parse(_lengthController.text.trim());
     final lengthInKm = lengthInMiles / 0.621371; // Convert miles to km
 
     // Create hike object
@@ -349,25 +372,53 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
                 fillColor: Colors.grey[900],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                  borderSide: BorderSide(
+                    color: _locationError ? Colors.red : Colors.transparent,
+                  ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                  borderSide: BorderSide(
+                    color: _locationError ? Colors.red : Colors.transparent,
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.primary,
+                    color: _locationError
+                        ? Colors.red
+                        : Theme.of(context).colorScheme.primary,
                     width: 2,
                   ),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.red, width: 2),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.red, width: 2),
                 ),
                 suffixIcon: const Icon(
                   Icons.location_on,
                   color: Colors.white70,
                 ),
               ),
+              onChanged: (value) {
+                if (_locationError && value.trim().isNotEmpty) {
+                  setState(() {
+                    _locationError = false;
+                  });
+                }
+              },
             ),
+            if (_locationError) ...[
+              const SizedBox(height: 4),
+              const Text(
+                'Location is required',
+                style: TextStyle(color: Colors.red, fontSize: 12),
+              ),
+            ],
             const SizedBox(height: 20),
 
             // Date (Required)
@@ -437,21 +488,53 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
                 fillColor: Colors.grey[900],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                  borderSide: BorderSide(
+                    color: _lengthError ? Colors.red : Colors.transparent,
+                  ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                  borderSide: BorderSide(
+                    color: _lengthError ? Colors.red : Colors.transparent,
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.primary,
+                    color: _lengthError
+                        ? Colors.red
+                        : Theme.of(context).colorScheme.primary,
                     width: 2,
                   ),
                 ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.red, width: 2),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.red, width: 2),
+                ),
               ),
+              onChanged: (value) {
+                if (_lengthError && value.trim().isNotEmpty) {
+                  final lengthValue = double.tryParse(value.trim());
+                  if (lengthValue != null && lengthValue > 0) {
+                    setState(() {
+                      _lengthError = false;
+                      _lengthErrorMessage = null;
+                    });
+                  }
+                }
+              },
             ),
+            if (_lengthError) ...[
+              const SizedBox(height: 4),
+              Text(
+                _lengthErrorMessage ?? 'Length is required',
+                style: const TextStyle(color: Colors.red, fontSize: 12),
+              ),
+            ],
             const SizedBox(height: 20),
 
             // Parking (Required)

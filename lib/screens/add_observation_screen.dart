@@ -32,6 +32,7 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
   final ImagePicker _picker = ImagePicker();
   bool _isGettingLocation = false;
   bool _customCategoryError = false;
+  bool _observationError = false;
   final List<String> _categories = [
     'Wildlife',
     'Weather',
@@ -255,14 +256,22 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
   }
 
   Future<void> _saveObservation() async {
+    // Reset error states
+    setState(() {
+      _observationError = false;
+      _customCategoryError = false;
+    });
+
+    // Validate required fields
+    bool isValid = true;
+    List<String> missingFields = [];
+
     if (_observationController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Observation is required'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
+      setState(() {
+        _observationError = true;
+      });
+      isValid = false;
+      missingFields.add('Observation');
     }
 
     if (_selectedCategory == 'Other' &&
@@ -270,18 +279,32 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
       setState(() {
         _customCategoryError = true;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a category name for "Other".'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
+      isValid = false;
+      missingFields.add('Category name (for "Other")');
     }
 
-    setState(() {
-      _customCategoryError = false;
-    });
+    if (!isValid) {
+      // Show dialog if there are missing required fields
+      if (missingFields.isNotEmpty) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            title: const Text('Required Fields Missing'),
+            content: Text(
+              'Please fill all required fields:\n\n• ${missingFields.join('\n• ')}',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+      return;
+    }
 
     final categoryValue = _selectedCategory == 'Other'
         ? _customCategoryController.text.trim()
@@ -375,21 +398,49 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
                 fillColor: Colors.grey[900],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                  borderSide: BorderSide(
+                    color: _observationError ? Colors.red : Colors.transparent,
+                  ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                  borderSide: BorderSide(
+                    color: _observationError ? Colors.red : Colors.transparent,
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.primary,
+                    color: _observationError
+                        ? Colors.red
+                        : Theme.of(context).colorScheme.primary,
                     width: 2,
                   ),
                 ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.red, width: 2),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.red, width: 2),
+                ),
               ),
+              onChanged: (value) {
+                if (_observationError && value.trim().isNotEmpty) {
+                  setState(() {
+                    _observationError = false;
+                  });
+                }
+              },
             ),
+            if (_observationError) ...[
+              const SizedBox(height: 4),
+              const Text(
+                'Observation is required',
+                style: TextStyle(color: Colors.red, fontSize: 12),
+              ),
+            ],
             const SizedBox(height: 24),
 
             // Category Selection
@@ -478,7 +529,22 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
                       width: 2,
                     ),
                   ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.red, width: 2),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.red, width: 2),
+                  ),
                 ),
+                onChanged: (value) {
+                  if (_customCategoryError && value.trim().isNotEmpty) {
+                    setState(() {
+                      _customCategoryError = false;
+                    });
+                  }
+                },
               ),
               const SizedBox(height: 24),
             ],
