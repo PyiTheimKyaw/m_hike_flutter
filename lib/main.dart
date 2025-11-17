@@ -15,12 +15,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.dark(
-          primary: const Color(0xFF4CAF50), // Light green
-          secondary: const Color(0xFF66BB6A), // Lighter green
-          surface: const Color(0xFF1B2E1F), // Dark green background for cards
-          background: const Color(
-            0xFF0D1F0F,
-          ), // Very dark green/black background
+          primary: const Color(0xFF4CAF50),
+          secondary: const Color(0xFF66BB6A),
+          surface: const Color(0xFF1B2E1F),
+          background: const Color(0xFF0D1F0F),
           onPrimary: Colors.white,
           onSecondary: Colors.white,
           onSurface: Colors.white,
