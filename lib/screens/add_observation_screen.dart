@@ -23,25 +23,44 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
   final _formKey = GlobalKey<FormState>();
   final _observationController = TextEditingController();
   final _commentsController = TextEditingController();
+  final _customCategoryController = TextEditingController();
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   DateTime _selectedDateTime = DateTime.now();
-  String _location = '40.7128° N, 74.0060° W'; // Default location
+  final TextEditingController _locationController = TextEditingController();
   String? _photoPath;
   final ImagePicker _picker = ImagePicker();
   bool _isGettingLocation = false;
+  bool _customCategoryError = false;
+  final List<String> _categories = [
+    'Wildlife',
+    'Weather',
+    'Trail',
+    'Safety',
+    'Scenery',
+    'Other',
+  ];
+  String _selectedCategory = 'Wildlife';
 
   @override
   void initState() {
     super.initState();
+    _locationController.text = '40.7128° N, 74.0060° W';
     if (widget.observation != null) {
       // Editing mode - populate fields
       _observationController.text = widget.observation!.observation;
       _selectedDateTime = widget.observation!.time;
       _commentsController.text = widget.observation!.additionalComments ?? '';
       _photoPath = widget.observation!.photoPath;
+      if (_categories.contains(widget.observation!.category)) {
+        _selectedCategory = widget.observation!.category;
+      } else {
+        _selectedCategory = 'Other';
+        _customCategoryController.text = widget.observation!.category;
+      }
+      _locationController.text = widget.observation!.location;
       // Try to get location from observation if available
-      _getCurrentLocation();
+      _isGettingLocation = false;
     } else {
       // New observation - get location automatically
       _getCurrentLocation();
@@ -52,6 +71,8 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
   void dispose() {
     _observationController.dispose();
     _commentsController.dispose();
+    _customCategoryController.dispose();
+    _locationController.dispose();
     super.dispose();
   }
 
@@ -125,7 +146,7 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
 
         if (mounted) {
           setState(() {
-            _location =
+            _locationController.text =
                 address ??
                 LocationService.formatCoordinates(
                   position.latitude,
@@ -244,11 +265,37 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
       return;
     }
 
+    if (_selectedCategory == 'Other' &&
+        _customCategoryController.text.trim().isEmpty) {
+      setState(() {
+        _customCategoryError = true;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a category name for "Other".'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _customCategoryError = false;
+    });
+
+    final categoryValue = _selectedCategory == 'Other'
+        ? _customCategoryController.text.trim()
+        : _selectedCategory;
+
     final observation = Observation(
       id: widget.observation?.id,
       hikeId: widget.hike.id!,
       observation: _observationController.text.trim(),
       time: _selectedDateTime,
+      category: categoryValue.isEmpty ? 'Other' : categoryValue,
+      location: _locationController.text.trim().isEmpty
+          ? 'Unknown location'
+          : _locationController.text.trim(),
       additionalComments: _commentsController.text.trim().isEmpty
           ? null
           : _commentsController.text.trim(),
@@ -344,6 +391,97 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
               ),
             ),
             const SizedBox(height: 24),
+
+            // Category Selection
+            const Text(
+              'Category',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _categories.map((category) {
+                final bool isSelected = _selectedCategory == category;
+                return ChoiceChip(
+                  label: Text(category),
+                  selected: isSelected,
+                  selectedColor: Theme.of(context).colorScheme.primary,
+                  labelStyle: TextStyle(
+                    color: isSelected ? Colors.white : Colors.white70,
+                    fontWeight: isSelected
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                  ),
+                  onSelected: (selected) {
+                    if (selected) {
+                      setState(() {
+                        _selectedCategory = category;
+                        if (category != 'Other') {
+                          _customCategoryController.clear();
+                          _customCategoryError = false;
+                        }
+                      });
+                    }
+                  },
+                  backgroundColor: Colors.grey[900],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    side: BorderSide(
+                      color: isSelected
+                          ? Colors.transparent
+                          : Colors.grey[800]!,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 24),
+            if (_selectedCategory == 'Other') ...[
+              TextField(
+                controller: _customCategoryController,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Custom Category',
+                  labelStyle: const TextStyle(color: Colors.white70),
+                  errorText: _customCategoryError
+                      ? 'Please enter a category name'
+                      : null,
+                  filled: true,
+                  fillColor: Colors.grey[900],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: _customCategoryError
+                          ? Colors.red
+                          : Colors.transparent,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: _customCategoryError
+                          ? Colors.red
+                          : Colors.transparent,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: _customCategoryError
+                          ? Colors.red
+                          : Theme.of(context).colorScheme.primary,
+                      width: 2,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
 
             // Photo Section
             if (_photoPath != null) ...[
@@ -461,25 +599,35 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
             ),
             const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              decoration: BoxDecoration(
-                color: Colors.grey[900],
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      _location,
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+              child: TextField(
+                controller: _locationController,
+                style: const TextStyle(color: Colors.white),
+                maxLines: 2,
+                decoration: InputDecoration(
+                  hintText: 'Enter location or coordinates',
+                  hintStyle: TextStyle(color: Colors.grey[500]),
+                  filled: true,
+                  fillColor: Colors.grey[900],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.primary,
+                      width: 2,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.location_on, color: Colors.white70),
-                ],
+                  suffixIcon: const Icon(
+                    Icons.location_on,
+                    color: Colors.white70,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 20),

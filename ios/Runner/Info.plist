@@ -10,6 +10,8 @@
 	<string>This app uses your location to automatically fill in hike and observation locations.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>This app uses your location to automatically fill in hike and observation locations.</string>
+	<key>GMSApiKey</key>
+	<string>AIzaSyBkTjqWglCoGqs-_EuXlyaCVupFjzJUx6Q</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

@@ -5,6 +5,7 @@ import '../models/observation.dart';
 import '../models/hike.dart';
 import '../database/database_helper.dart';
 import 'add_observation_screen.dart';
+import 'map_screen.dart';
 
 class ObservationDetailScreen extends StatelessWidget {
   final Observation observation;
@@ -104,45 +105,89 @@ class ObservationDetailScreen extends StatelessWidget {
                     context,
                     icon: Icons.category,
                     label: 'Category',
-                    value: 'Wildlife',
+                    value: observation.category,
                   ),
                   const SizedBox(height: 16),
 
                   // Location
-                  _buildDetailRow(
-                    context,
-                    icon: Icons.location_on,
-                    label: 'Location',
-                    value: '40.7128° N, 74.0060° W',
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: _buildDetailRow(
+                          context,
+                          icon: Icons.location_on,
+                          label: 'Location',
+                          value: observation.location,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 24),
 
                   // Map Snippet
-                  Container(
-                    height: 200,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[900],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MapScreen(
+                            locationName: observation.location,
+                            title: observation.observation,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      height: 200,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[900],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Stack(
                         children: [
-                          Icon(Icons.map, size: 50, color: Colors.grey[600]),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Map View',
-                            style: TextStyle(
-                              color: Colors.grey[400],
-                              fontSize: 14,
+                          Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.map,
+                                  size: 50,
+                                  color: Colors.grey[600],
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Tap to view on map',
+                                  style: TextStyle(
+                                    color: Colors.grey[400],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Yosemite National Park',
-                            style: TextStyle(
-                              color: Colors.grey[500],
-                              fontSize: 12,
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withOpacity(0.8),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.open_in_full,
+                                size: 16,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ],

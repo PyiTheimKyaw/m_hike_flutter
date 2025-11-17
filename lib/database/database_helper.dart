@@ -21,7 +21,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 4,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -51,6 +51,8 @@ class DatabaseHelper {
         hikeId INTEGER NOT NULL,
         observation TEXT NOT NULL,
         time TEXT NOT NULL,
+        category TEXT NOT NULL DEFAULT 'General',
+        location TEXT NOT NULL DEFAULT 'Unknown location',
         additionalComments TEXT,
         photoPath TEXT,
         FOREIGN KEY (hikeId) REFERENCES hikes (id) ON DELETE CASCADE
@@ -62,6 +64,16 @@ class DatabaseHelper {
     if (oldVersion < 2) {
       // Add photoPath column to observations table
       await db.execute('ALTER TABLE observations ADD COLUMN photoPath TEXT');
+    }
+    if (oldVersion < 3) {
+      await db.execute(
+        "ALTER TABLE observations ADD COLUMN category TEXT NOT NULL DEFAULT 'General'",
+      );
+    }
+    if (oldVersion < 4) {
+      await db.execute(
+        "ALTER TABLE observations ADD COLUMN location TEXT NOT NULL DEFAULT 'Unknown location'",
+      );
     }
   }
 

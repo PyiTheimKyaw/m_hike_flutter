@@ -7,6 +7,7 @@ import '../database/database_helper.dart';
 import 'add_observation_screen.dart';
 import 'observations_list_screen.dart';
 import 'observation_detail_screen.dart';
+import 'map_screen.dart';
 
 class HikeDetailScreen extends StatefulWidget {
   final Hike hike;
@@ -174,7 +175,35 @@ class _HikeDetailScreenState extends State<HikeDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildDetailRow('Location', widget.hike.location),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: _buildDetailRow(
+                                'Location',
+                                widget.hike.location,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.map,
+                                color: Colors.white70,
+                              ),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => MapScreen(
+                                      locationName: widget.hike.location,
+                                      title: widget.hike.name,
+                                    ),
+                                  ),
+                                );
+                              },
+                              tooltip: 'View on Map',
+                            ),
+                          ],
+                        ),
                         _buildDetailRow('Date', formattedDate),
                         if (widget.hike.weatherCondition != null)
                           _buildDetailRow(
@@ -402,6 +431,7 @@ class _HikeDetailScreenState extends State<HikeDetailScreen> {
           children: [
             Container(
               height: 100,
+              width: double.infinity,
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
                 borderRadius: const BorderRadius.vertical(
@@ -419,11 +449,7 @@ class _HikeDetailScreenState extends State<HikeDetailScreen> {
                         File(observation.photoPath!),
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
-                          return const Icon(
-                            Icons.image,
-                            size: 50,
-                            color: Colors.white70,
-                          );
+                          return const Icon(Icons.image, color: Colors.white70);
                         },
                       ),
                     )

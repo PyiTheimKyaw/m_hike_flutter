@@ -3,6 +3,8 @@ class Observation {
   final int hikeId; // Foreign key to Hike
   final String observation;
   final DateTime time;
+  final String category;
+  final String location;
   final String? additionalComments; // Optional
   final String? photoPath; // Path to photo file
 
@@ -11,6 +13,8 @@ class Observation {
     required this.hikeId,
     required this.observation,
     required this.time,
+    required this.category,
+    required this.location,
     this.additionalComments,
     this.photoPath,
   });
@@ -22,6 +26,8 @@ class Observation {
       'hikeId': hikeId,
       'observation': observation,
       'time': time.toIso8601String(),
+      'category': category,
+      'location': location,
       'additionalComments': additionalComments,
       'photoPath': photoPath,
     };
@@ -34,6 +40,8 @@ class Observation {
       hikeId: map['hikeId'] as int,
       observation: map['observation'] as String,
       time: DateTime.parse(map['time'] as String),
+      category: map['category'] as String? ?? 'General',
+      location: map['location'] as String? ?? 'Unknown location',
       additionalComments: map['additionalComments'] as String?,
       photoPath: map['photoPath'] as String?,
     );
@@ -45,6 +53,8 @@ class Observation {
     int? hikeId,
     String? observation,
     DateTime? time,
+    String? category,
+    String? location,
     String? additionalComments,
     String? photoPath,
   }) {
@@ -53,6 +63,8 @@ class Observation {
       hikeId: hikeId ?? this.hikeId,
       observation: observation ?? this.observation,
       time: time ?? this.time,
+      category: category ?? this.category,
+      location: location ?? this.location,
       additionalComments: additionalComments ?? this.additionalComments,
       photoPath: photoPath ?? this.photoPath,
     );
