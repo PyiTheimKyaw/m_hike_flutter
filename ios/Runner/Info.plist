@@ -2,6 +2,16 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSCameraUsageDescription</key>
+	<string>This app uses the camera to take photos for observations.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app uses the photo library to select photos for observations.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app uses your location to automatically fill in hike and observation locations.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app uses your location to automatically fill in hike and observation locations.</string>
+	<key>GMSApiKey</key>
+	<string>AIzaSyBkTjqWglCoGqs-_EuXlyaCVupFjzJUx6Q</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
