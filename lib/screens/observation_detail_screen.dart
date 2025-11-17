@@ -125,7 +125,7 @@ class ObservationDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // Map Snippet
+                  // Map
                   InkWell(
                     onTap: () {
                       Navigator.push(

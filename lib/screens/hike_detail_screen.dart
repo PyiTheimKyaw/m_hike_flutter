@@ -109,7 +109,7 @@ class _HikeDetailScreenState extends State<HikeDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Statistics Cards
+                  // Cards
                   Row(
                     children: [
                       Expanded(
@@ -291,7 +291,7 @@ class _HikeDetailScreenState extends State<HikeDetailScreen> {
                         },
                       ),
                     ),
-                  const SizedBox(height: 80), // Space for FAB
+                  const SizedBox(height: 80),
                 ],
               ),
             ),

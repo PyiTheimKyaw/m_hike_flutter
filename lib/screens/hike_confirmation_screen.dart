@@ -183,8 +183,8 @@ Future<void> _saveHike(BuildContext context, Hike hike, bool isEditing) async {
 
     if (context.mounted) {
       // Close dialog and pop add/edit screen
-      Navigator.pop(context); // Close dialog
-      Navigator.pop(context); // Pop add/edit screen
+      Navigator.pop(context);
+      Navigator.pop(context);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

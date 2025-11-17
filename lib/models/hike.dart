@@ -3,12 +3,12 @@ class Hike {
   final String name;
   final String location;
   final DateTime date;
-  final String parkingAvailable; // "Yes" or "No"
-  final double length; // in km
-  final String difficulty; // e.g., "Easy", "Medium", "Hard"
-  final String? description; // Optional
-  final String? weatherCondition; // Custom field 1
-  final String? estimatedDuration; // Custom field 2 (e.g., "3 hours")
+  final String parkingAvailable;
+  final double length;
+  final String difficulty;
+  final String? description;
+  final String? weatherCondition;
+  final String? estimatedDuration;
 
   Hike({
     this.id,
@@ -23,7 +23,7 @@ class Hike {
     this.estimatedDuration,
   });
 
-  // Convert Hike to Map for database storage
+  // Convert Hike to Map
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -39,7 +39,7 @@ class Hike {
     };
   }
 
-  // Create Hike from Map (from database)
+  // Create Hike from Map
   factory Hike.fromMap(Map<String, dynamic> map) {
     return Hike(
       id: map['id'] as int?,

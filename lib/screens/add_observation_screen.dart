@@ -8,6 +8,8 @@ import '../models/hike.dart';
 import '../models/observation.dart';
 import '../database/database_helper.dart';
 import '../services/location_service.dart';
+import '../widgets/custom_text_form_field.dart';
+import '../widgets/custom_text_field.dart';
 
 class AddObservationScreen extends StatefulWidget {
   final Hike hike;
@@ -387,45 +389,14 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            TextFormField(
+            CustomTextFormField(
               controller: _observationController,
-              style: const TextStyle(color: Colors.white),
+              hintText: 'Saw a red-tailed hawk...',
               maxLines: 3,
-              decoration: InputDecoration(
-                hintText: 'Saw a red-tailed hawk...',
-                hintStyle: TextStyle(color: Colors.grey[500]),
-                filled: true,
-                fillColor: Colors.grey[900],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: _observationError ? Colors.red : Colors.transparent,
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: _observationError ? Colors.red : Colors.transparent,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: _observationError
-                        ? Colors.red
-                        : Theme.of(context).colorScheme.primary,
-                    width: 2,
-                  ),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.red, width: 2),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.red, width: 2),
-                ),
-              ),
+              showError: _observationError,
+              errorMessage: _observationError
+                  ? 'Observation is required'
+                  : null,
               onChanged: (value) {
                 if (_observationError && value.trim().isNotEmpty) {
                   setState(() {
@@ -434,13 +405,6 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
                 }
               },
             ),
-            if (_observationError) ...[
-              const SizedBox(height: 4),
-              const Text(
-                'Observation is required',
-                style: TextStyle(color: Colors.red, fontSize: 12),
-              ),
-            ],
             const SizedBox(height: 24),
 
             // Category Selection
@@ -493,51 +457,13 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
             ),
             const SizedBox(height: 24),
             if (_selectedCategory == 'Other') ...[
-              TextField(
+              CustomTextField(
                 controller: _customCategoryController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Custom Category',
-                  labelStyle: const TextStyle(color: Colors.white70),
-                  errorText: _customCategoryError
-                      ? 'Please enter a category name'
-                      : null,
-                  filled: true,
-                  fillColor: Colors.grey[900],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: _customCategoryError
-                          ? Colors.red
-                          : Colors.transparent,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: _customCategoryError
-                          ? Colors.red
-                          : Colors.transparent,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: _customCategoryError
-                          ? Colors.red
-                          : Theme.of(context).colorScheme.primary,
-                      width: 2,
-                    ),
-                  ),
-                  errorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.red, width: 2),
-                  ),
-                  focusedErrorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.red, width: 2),
-                  ),
-                ),
+                labelText: 'Custom Category',
+                showError: _customCategoryError,
+                errorMessage: _customCategoryError
+                    ? 'Please enter a category name'
+                    : null,
                 onChanged: (value) {
                   if (_customCategoryError && value.trim().isNotEmpty) {
                     setState(() {
@@ -664,37 +590,11 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
               ],
             ),
             const SizedBox(height: 8),
-            Container(
-              child: TextField(
-                controller: _locationController,
-                style: const TextStyle(color: Colors.white),
-                maxLines: 2,
-                decoration: InputDecoration(
-                  hintText: 'Enter location or coordinates',
-                  hintStyle: TextStyle(color: Colors.grey[500]),
-                  filled: true,
-                  fillColor: Colors.grey[900],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: Theme.of(context).colorScheme.primary,
-                      width: 2,
-                    ),
-                  ),
-                  suffixIcon: const Icon(
-                    Icons.location_on,
-                    color: Colors.white70,
-                  ),
-                ),
-              ),
+            CustomTextField(
+              controller: _locationController,
+              hintText: 'Enter location or coordinates',
+              maxLines: 2,
+              suffixIcon: const Icon(Icons.location_on, color: Colors.white70),
             ),
             const SizedBox(height: 20),
 
@@ -708,31 +608,10 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            TextFormField(
+            CustomTextFormField(
               controller: _commentsController,
-              style: const TextStyle(color: Colors.white),
+              hintText: 'Optional notes...',
               maxLines: 4,
-              decoration: InputDecoration(
-                hintText: 'Optional notes...',
-                hintStyle: TextStyle(color: Colors.grey[500]),
-                filled: true,
-                fillColor: Colors.grey[900],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.primary,
-                    width: 2,
-                  ),
-                ),
-              ),
             ),
             const SizedBox(height: 32),
 

@@ -19,12 +19,7 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(
-      path,
-      version: 4,
-      onCreate: _createDB,
-      onUpgrade: _onUpgrade,
-    );
+    return await openDatabase(path, version: 4, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   Future<void> _createDB(Database db, int version) async {
@@ -99,12 +94,7 @@ class DatabaseHelper {
 
   Future<int> updateHike(Hike hike) async {
     final db = await database;
-    return await db.update(
-      'hikes',
-      hike.toMap(),
-      where: 'id = ?',
-      whereArgs: [hike.id],
-    );
+    return await db.update('hikes', hike.toMap(), where: 'id = ?', whereArgs: [hike.id]);
   }
 
   Future<int> deleteHike(int id) async {
@@ -140,11 +130,7 @@ class DatabaseHelper {
 
   Future<Observation?> getObservation(int id) async {
     final db = await database;
-    final result = await db.query(
-      'observations',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    final result = await db.query('observations', where: 'id = ?', whereArgs: [id]);
     if (result.isEmpty) return null;
     return Observation.fromMap(result.first);
   }

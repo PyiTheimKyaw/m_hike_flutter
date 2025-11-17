@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/hike.dart';
 import '../services/location_service.dart';
+import '../widgets/custom_text_form_field.dart';
 import 'hike_confirmation_screen.dart' show showHikeConfirmationDialog;
 
 class AddHikeScreen extends StatefulWidget {
@@ -270,44 +271,11 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            TextFormField(
+            CustomTextFormField(
               controller: _nameController,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: 'e.g., Lakeview Mountain Trail',
-                hintStyle: TextStyle(color: Colors.grey[500]),
-                filled: true,
-                fillColor: Colors.grey[900],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: _nameError ? Colors.red : Colors.transparent,
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: _nameError ? Colors.red : Colors.transparent,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: _nameError
-                        ? Colors.red
-                        : Theme.of(context).colorScheme.primary,
-                    width: 2,
-                  ),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.red, width: 2),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.red, width: 2),
-                ),
-              ),
+              hintText: 'e.g., Lakeview Mountain Trail',
+              showError: _nameError,
+              errorText: _nameError ? 'Hike name is required' : null,
               onChanged: (value) {
                 if (_nameError && value.trim().isNotEmpty) {
                   setState(() {
@@ -316,13 +284,6 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
                 }
               },
             ),
-            if (_nameError) ...[
-              const SizedBox(height: 4),
-              const Text(
-                'Hike name is required',
-                style: TextStyle(color: Colors.red, fontSize: 12),
-              ),
-            ],
             const SizedBox(height: 20),
 
             // Location (Required)
@@ -362,48 +323,12 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
               ],
             ),
             const SizedBox(height: 8),
-            TextFormField(
+            CustomTextFormField(
               controller: _locationController,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: 'Search for a trailhead or address',
-                hintStyle: TextStyle(color: Colors.grey[500]),
-                filled: true,
-                fillColor: Colors.grey[900],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: _locationError ? Colors.red : Colors.transparent,
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: _locationError ? Colors.red : Colors.transparent,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: _locationError
-                        ? Colors.red
-                        : Theme.of(context).colorScheme.primary,
-                    width: 2,
-                  ),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.red, width: 2),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.red, width: 2),
-                ),
-                suffixIcon: const Icon(
-                  Icons.location_on,
-                  color: Colors.white70,
-                ),
-              ),
+              hintText: 'Search for a trailhead or address',
+              showError: _locationError,
+              errorText: _locationError ? 'Location is required' : null,
+              suffixIcon: const Icon(Icons.location_on, color: Colors.white70),
               onChanged: (value) {
                 if (_locationError && value.trim().isNotEmpty) {
                   setState(() {
@@ -412,13 +337,6 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
                 }
               },
             ),
-            if (_locationError) ...[
-              const SizedBox(height: 4),
-              const Text(
-                'Location is required',
-                style: TextStyle(color: Colors.red, fontSize: 12),
-              ),
-            ],
             const SizedBox(height: 20),
 
             // Date (Required)
@@ -477,45 +395,14 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            TextFormField(
+            CustomTextFormField(
               controller: _lengthController,
-              style: const TextStyle(color: Colors.white),
+              hintText: 'e.g., 5.5',
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                hintText: 'e.g., 5.5',
-                hintStyle: TextStyle(color: Colors.grey[500]),
-                filled: true,
-                fillColor: Colors.grey[900],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: _lengthError ? Colors.red : Colors.transparent,
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: _lengthError ? Colors.red : Colors.transparent,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: _lengthError
-                        ? Colors.red
-                        : Theme.of(context).colorScheme.primary,
-                    width: 2,
-                  ),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.red, width: 2),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.red, width: 2),
-                ),
-              ),
+              showError: _lengthError,
+              errorText:
+                  _lengthErrorMessage ??
+                  (_lengthError ? 'Length is required' : null),
               onChanged: (value) {
                 if (_lengthError && value.trim().isNotEmpty) {
                   final lengthValue = double.tryParse(value.trim());
@@ -528,13 +415,6 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
                 }
               },
             ),
-            if (_lengthError) ...[
-              const SizedBox(height: 4),
-              Text(
-                _lengthErrorMessage ?? 'Length is required',
-                style: const TextStyle(color: Colors.red, fontSize: 12),
-              ),
-            ],
             const SizedBox(height: 20),
 
             // Parking (Required)
@@ -606,30 +486,9 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            TextFormField(
+            CustomTextFormField(
               controller: _weatherConditionController,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: 'e.g., Sunny, Cloudy, Rainy',
-                hintStyle: TextStyle(color: Colors.grey[500]),
-                filled: true,
-                fillColor: Colors.grey[900],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.primary,
-                    width: 2,
-                  ),
-                ),
-              ),
+              hintText: 'e.g., Sunny, Cloudy, Rainy',
             ),
             const SizedBox(height: 20),
 
@@ -643,30 +502,9 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            TextFormField(
+            CustomTextFormField(
               controller: _estimatedDurationController,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: 'e.g., 3 hours, 2-3 hours',
-                hintStyle: TextStyle(color: Colors.grey[500]),
-                filled: true,
-                fillColor: Colors.grey[900],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.primary,
-                    width: 2,
-                  ),
-                ),
-              ),
+              hintText: 'e.g., 3 hours, 2-3 hours',
             ),
             const SizedBox(height: 20),
 
@@ -680,31 +518,10 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            TextFormField(
+            CustomTextFormField(
               controller: _descriptionController,
-              style: const TextStyle(color: Colors.white),
+              hintText: 'Add notes about trail conditions, gear, etc.',
               maxLines: 4,
-              decoration: InputDecoration(
-                hintText: 'Add notes about trail conditions, gear, etc.',
-                hintStyle: TextStyle(color: Colors.grey[500]),
-                filled: true,
-                fillColor: Colors.grey[900],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.primary,
-                    width: 2,
-                  ),
-                ),
-              ),
             ),
             const SizedBox(height: 32),
 

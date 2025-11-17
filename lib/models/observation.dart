@@ -1,12 +1,12 @@
 class Observation {
   final int? id;
-  final int hikeId; // Foreign key to Hike
+  final int hikeId;
   final String observation;
   final DateTime time;
   final String category;
   final String location;
-  final String? additionalComments; // Optional
-  final String? photoPath; // Path to photo file
+  final String? additionalComments;
+  final String? photoPath;
 
   Observation({
     this.id,
@@ -19,7 +19,7 @@ class Observation {
     this.photoPath,
   });
 
-  // Convert Observation to Map for database storage
+  // Convert Observation to Map
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -33,7 +33,7 @@ class Observation {
     };
   }
 
-  // Create Observation from Map (from database)
+  // Create Observation from Map
   factory Observation.fromMap(Map<String, dynamic> map) {
     return Observation(
       id: map['id'] as int?,
