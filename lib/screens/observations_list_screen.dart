@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/hike.dart';
 import '../models/observation.dart';
@@ -68,19 +69,7 @@ class _ObservationsListScreenState extends State<ObservationsListScreen> {
                   ),
                   child: ListTile(
                     contentPadding: const EdgeInsets.all(12),
-                    leading: Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.visibility,
-                        color: Colors.white,
-                        size: 28,
-                      ),
-                    ),
+                    leading: _buildObservationImage(observation),
                     title: Text(
                       observation.observation,
                       style: const TextStyle(
@@ -113,6 +102,46 @@ class _ObservationsListScreenState extends State<ObservationsListScreen> {
                 );
               },
             ),
+    );
+  }
+
+  Widget _buildObservationImage(Observation observation) {
+    final hasPhoto =
+        observation.photoPath != null &&
+        observation.photoPath!.isNotEmpty &&
+        File(observation.photoPath!).existsSync();
+
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        color: hasPhoto
+            ? Colors.transparent
+            : Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: hasPhoto
+          ? ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.file(
+                File(observation.photoPath!),
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.visibility,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  );
+                },
+              ),
+            )
+          : const Icon(Icons.visibility, color: Colors.white, size: 28),
     );
   }
 }
