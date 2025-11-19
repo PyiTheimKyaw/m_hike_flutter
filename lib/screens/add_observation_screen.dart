@@ -13,7 +13,8 @@ import '../widgets/custom_text_field.dart';
 
 class AddObservationScreen extends StatefulWidget {
   final Hike hike;
-  final Observation? observation; // If provided, we're editing
+  // has data edit mode,no data add mode
+  final Observation? observation;
 
   const AddObservationScreen({super.key, required this.hike, this.observation});
 
@@ -50,7 +51,7 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
     super.initState();
     _locationController.text = '40.7128° N, 74.0060° W';
     if (widget.observation != null) {
-      // Editing mode - populate fields
+      // Editing mode
       _observationController.text = widget.observation!.observation;
       _selectedDateTime = widget.observation!.time;
       _commentsController.text = widget.observation!.additionalComments ?? '';
@@ -62,10 +63,10 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
         _customCategoryController.text = widget.observation!.category;
       }
       _locationController.text = widget.observation!.location;
-      // Try to get location from observation if available
+      // get location from observation
       _isGettingLocation = false;
     } else {
-      // New observation - get location automatically
+      // New observation get location automatically
       _getCurrentLocation();
     }
   }
@@ -141,7 +142,7 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
     try {
       final position = await LocationService.getCurrentPosition();
       if (position != null) {
-        // Try to get address first
+        // get address first
         final address = await LocationService.getAddressFromCoordinates(
           position.latitude,
           position.longitude,
@@ -227,7 +228,7 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
       );
 
       if (image != null) {
-        // Copy image to app's documents directory
+        // Copy image to app documents directory
         final appDir = await getApplicationDocumentsDirectory();
         final fileName =
             'observation_${DateTime.now().millisecondsSinceEpoch}${path.extension(image.path)}';
@@ -235,7 +236,7 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
           path.join(appDir.path, 'observations', fileName),
         );
 
-        // Create directory if it doesn't exist
+        // Create directory if not have
         await savedImage.parent.create(recursive: true);
 
         // Copy the file
@@ -258,13 +259,13 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
   }
 
   Future<void> _saveObservation() async {
-    // Reset error states
+    // reset error states
     setState(() {
       _observationError = false;
       _customCategoryError = false;
     });
 
-    // Validate required fields
+    // validate required fields
     bool isValid = true;
     List<String> missingFields = [];
 
@@ -286,7 +287,7 @@ class _AddObservationScreenState extends State<AddObservationScreen> {
     }
 
     if (!isValid) {
-      // Show dialog if there are missing required fields
+      // Show validation error dialog
       if (missingFields.isNotEmpty) {
         showDialog(
           context: context,

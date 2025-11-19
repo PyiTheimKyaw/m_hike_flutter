@@ -8,6 +8,7 @@ import 'add_observation_screen.dart';
 import 'observations_list_screen.dart';
 import 'observation_detail_screen.dart';
 import 'map_screen.dart';
+import 'add_hike_screen.dart';
 
 class HikeDetailScreen extends StatefulWidget {
   final Hike hike;
@@ -20,6 +21,7 @@ class HikeDetailScreen extends StatefulWidget {
 
 class _HikeDetailScreenState extends State<HikeDetailScreen> {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
+  late Hike _hike;
   List<Observation> _observations = [];
   bool _isLoading = true;
   bool _descriptionExpanded = false;
@@ -29,14 +31,24 @@ class _HikeDetailScreenState extends State<HikeDetailScreen> {
   @override
   void initState() {
     super.initState();
+    _hike = widget.hike;
     _loadObservations();
+  }
+
+  Future<void> _loadHike() async {
+    if (_hike.id != null) {
+      final updatedHike = await _dbHelper.getHike(_hike.id!);
+      if (updatedHike != null && mounted) {
+        setState(() {
+          _hike = updatedHike;
+        });
+      }
+    }
   }
 
   Future<void> _loadObservations() async {
     setState(() => _isLoading = true);
-    final observations = await _dbHelper.getObservationsByHikeId(
-      widget.hike.id!,
-    );
+    final observations = await _dbHelper.getObservationsByHikeId(_hike.id!);
     setState(() {
       _observations = observations;
       _isLoading = false;
@@ -44,7 +56,7 @@ class _HikeDetailScreenState extends State<HikeDetailScreen> {
   }
 
   String _getDifficultyText() {
-    switch (widget.hike.difficulty) {
+    switch (_hike.difficulty) {
       case 'Easy':
         return 'Easy';
       case 'Moderate':
@@ -52,15 +64,62 @@ class _HikeDetailScreenState extends State<HikeDetailScreen> {
       case 'Hard':
         return 'Hard';
       default:
-        return widget.hike.difficulty;
+        return _hike.difficulty;
+    }
+  }
+
+  Future<void> _editHike() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AddHikeScreen(hike: _hike)),
+    );
+    if (!mounted) return;
+    await _loadHike();
+    await _loadObservations();
+  }
+
+  Future<void> _deleteHike() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        title: const Text('Delete Hike'),
+        content: Text(
+          'Are you sure you want to delete "${_hike.name}"? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await _dbHelper.deleteHike(_hike.id!);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Hike deleted'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context, true);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final lengthInMiles = (widget.hike.length * 0.621371).toStringAsFixed(1);
+    final lengthInMiles = (_hike.length * 0.621371).toStringAsFixed(1);
     final dateFormat = DateFormat('MMMM dd, yyyy');
-    final formattedDate = dateFormat.format(widget.hike.date);
+    final formattedDate = dateFormat.format(_hike.date);
 
     return Scaffold(
       body: CustomScrollView(
@@ -73,7 +132,19 @@ class _HikeDetailScreenState extends State<HikeDetailScreen> {
               icon: const Icon(Icons.arrow_back),
               onPressed: () => Navigator.pop(context),
             ),
-            title: Text(widget.hike.name),
+            title: Text(_hike.name),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: _editHike,
+                tooltip: 'Edit Hike',
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: _deleteHike,
+                tooltip: 'Delete Hike',
+              ),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: BoxDecoration(
@@ -119,7 +190,7 @@ class _HikeDetailScreenState extends State<HikeDetailScreen> {
                       Expanded(
                         child: _buildStatCard(
                           'Time',
-                          widget.hike.estimatedDuration ?? 'N/A',
+                          _hike.estimatedDuration ?? 'N/A',
                         ),
                       ),
                     ],
@@ -137,7 +208,7 @@ class _HikeDetailScreenState extends State<HikeDetailScreen> {
                       Expanded(
                         child: _buildStatCard(
                           'Parking',
-                          widget.hike.parkingAvailable,
+                          _hike.parkingAvailable,
                         ),
                       ),
                     ],
@@ -154,7 +225,7 @@ class _HikeDetailScreenState extends State<HikeDetailScreen> {
                       });
                     },
                     child: Text(
-                      widget.hike.description ?? 'No description provided.',
+                      _hike.description ?? 'No description provided.',
                       style: const TextStyle(
                         color: Colors.white70,
                         height: 1.5,
@@ -181,7 +252,7 @@ class _HikeDetailScreenState extends State<HikeDetailScreen> {
                             Expanded(
                               child: _buildDetailRow(
                                 'Location',
-                                widget.hike.location,
+                                _hike.location,
                               ),
                             ),
                             IconButton(
@@ -194,8 +265,8 @@ class _HikeDetailScreenState extends State<HikeDetailScreen> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => MapScreen(
-                                      locationName: widget.hike.location,
-                                      title: widget.hike.name,
+                                      locationName: _hike.location,
+                                      title: _hike.name,
                                     ),
                                   ),
                                 );
@@ -205,11 +276,8 @@ class _HikeDetailScreenState extends State<HikeDetailScreen> {
                           ],
                         ),
                         _buildDetailRow('Date', formattedDate),
-                        if (widget.hike.weatherCondition != null)
-                          _buildDetailRow(
-                            'Weather',
-                            widget.hike.weatherCondition!,
-                          ),
+                        if (_hike.weatherCondition != null)
+                          _buildDetailRow('Weather', _hike.weatherCondition!),
                       ],
                     ),
                   ),
@@ -225,7 +293,7 @@ class _HikeDetailScreenState extends State<HikeDetailScreen> {
                       });
                     },
                     child: Text(
-                      widget.hike.parkingAvailable == 'Yes'
+                      _hike.parkingAvailable == 'Yes'
                           ? 'Parking is available at the trailhead.'
                           : 'Parking is not available. Please plan accordingly.',
                       style: const TextStyle(
@@ -255,7 +323,7 @@ class _HikeDetailScreenState extends State<HikeDetailScreen> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
-                                    ObservationsListScreen(hike: widget.hike),
+                                    ObservationsListScreen(hike: _hike),
                               ),
                             ).then((_) => _loadObservations());
                           },
@@ -303,7 +371,7 @@ class _HikeDetailScreenState extends State<HikeDetailScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => AddObservationScreen(hike: widget.hike),
+              builder: (context) => AddObservationScreen(hike: _hike),
             ),
           ).then((_) => _loadObservations());
         },
@@ -412,15 +480,14 @@ class _HikeDetailScreenState extends State<HikeDetailScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ObservationDetailScreen(
-              observation: observation,
-              hike: widget.hike,
-            ),
+            builder: (context) =>
+                ObservationDetailScreen(observation: observation, hike: _hike),
           ),
         ).then((_) => _loadObservations());
       },
       child: Container(
         width: 160,
+        height: 150,
         margin: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
           color: Colors.grey[900],
@@ -429,53 +496,60 @@ class _HikeDetailScreenState extends State<HikeDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              height: 100,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(12),
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(12),
+                  ),
                 ),
+                child:
+                    observation.photoPath != null &&
+                        File(observation.photoPath!).existsSync()
+                    ? ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(12),
+                        ),
+                        child: Image.file(
+                          File(observation.photoPath!),
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(
+                              Icons.image,
+                              color: Colors.white70,
+                            );
+                          },
+                        ),
+                      )
+                    : const Icon(Icons.image, size: 50, color: Colors.white70),
               ),
-              child:
-                  observation.photoPath != null &&
-                      File(observation.photoPath!).existsSync()
-                  ? ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(12),
-                      ),
-                      child: Image.file(
-                        File(observation.photoPath!),
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(Icons.image, color: Colors.white70);
-                        },
-                      ),
-                    )
-                  : const Icon(Icons.image, size: 50, color: Colors.white70),
             ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    previewText,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      previewText,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    formattedDate,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[400]),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      formattedDate,
+                      style: TextStyle(fontSize: 12, color: Colors.grey[400]),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

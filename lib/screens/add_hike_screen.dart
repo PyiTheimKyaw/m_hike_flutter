@@ -6,7 +6,8 @@ import '../widgets/custom_text_form_field.dart';
 import 'hike_confirmation_screen.dart' show showHikeConfirmationDialog;
 
 class AddHikeScreen extends StatefulWidget {
-  final Hike? hike; // If provided, we're editing; otherwise, we're adding
+  // if has data,edit mode else add mode
+  final Hike? hike;
 
   const AddHikeScreen({super.key, this.hike});
 
@@ -38,7 +39,7 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
   void initState() {
     super.initState();
     if (widget.hike != null) {
-      // Editing mode - populate fields
+      // Editing mode populate fields
       _nameController.text = widget.hike!.name;
       _locationController.text = widget.hike!.location;
       _selectedDate = widget.hike!.date;
@@ -188,7 +189,7 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
     }
 
     if (!isValid) {
-      // Show dialog if there are missing required fields
+      // Show validation error dialog
       if (missingFields.isNotEmpty) {
         showDialog(
           context: context,
@@ -211,7 +212,7 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
     }
 
     final lengthInMiles = double.parse(_lengthController.text.trim());
-    final lengthInKm = lengthInMiles / 0.621371; // Convert miles to km
+    final lengthInKm = lengthInMiles / 0.621371;
 
     // Create hike object
     final hike = Hike(
@@ -261,7 +262,7 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // Hike Name (Required)
+            // Hike Name
             const Text(
               'Hike Name*',
               style: TextStyle(
@@ -286,7 +287,7 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Location (Required)
+            // Location
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -339,7 +340,7 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Date (Required)
+            // Date
             const Text(
               'Date*',
               style: TextStyle(
@@ -374,7 +375,7 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Hike Details (Optional) Section
+            // Hike Details Section
             const Text(
               'Hike Details (Optional)',
               style: TextStyle(
@@ -385,7 +386,7 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Length (Required)
+            // Length
             const Text(
               'Length (mi)*',
               style: TextStyle(
@@ -417,7 +418,7 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Parking (Required)
+            // Parking
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -451,7 +452,7 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Difficulty (Required)
+            // Difficulty
             const Text(
               'Difficulty*',
               style: TextStyle(
@@ -476,7 +477,7 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Weather Condition (Optional - Custom field)
+            // Weather Condition
             const Text(
               'Weather Condition',
               style: TextStyle(
@@ -492,7 +493,7 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Estimated Duration (Optional - Custom field)
+            // Estimated Duration
             const Text(
               'Estimated Duration',
               style: TextStyle(
@@ -508,7 +509,7 @@ class _AddHikeScreenState extends State<AddHikeScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Description/Notes (Optional)
+            // Description/Notes
             const Text(
               'Description/Notes',
               style: TextStyle(
