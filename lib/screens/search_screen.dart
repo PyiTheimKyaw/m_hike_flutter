@@ -4,6 +4,7 @@ import '../models/hike.dart';
 import '../database/database_helper.dart';
 import '../widgets/custom_text_field.dart';
 import 'hike_detail_screen.dart';
+import 'add_hike_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -17,13 +18,14 @@ class _SearchScreenState extends State<SearchScreen> {
   final _locationController = TextEditingController();
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
-  double _minLength = 2.0; // in km
-  double _maxLength = 16.0; // in km
+  double _minLength = 2.0;
+  double _maxLength = 16.0;
   DateTime? _startDate;
   DateTime? _endDate;
 
   List<Hike> _searchResults = [];
   bool _isSearching = false;
+  bool _hasSearched = false;
 
   @override
   void dispose() {
@@ -64,6 +66,7 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() {
       _searchResults = results;
       _isSearching = false;
+      _hasSearched = true;
     });
   }
 
@@ -76,7 +79,30 @@ class _SearchScreenState extends State<SearchScreen> {
       _startDate = null;
       _endDate = null;
       _searchResults = [];
+      _hasSearched = false;
     });
+  }
+
+  String _getStatus(DateTime date) {
+    final now = DateTime.now();
+    if (date.isBefore(now)) {
+      return 'Completed';
+    } else {
+      return 'Planned';
+    }
+  }
+
+  IconData _getStatusIcon(DateTime date) {
+    final now = DateTime.now();
+    if (date.isBefore(now)) {
+      return Icons.hiking;
+    } else {
+      return Icons.flag;
+    }
+  }
+
+  Future<void> _refreshResults() async {
+    await _performSearch();
   }
 
   Future<void> _selectStartDate() async {
@@ -141,19 +167,6 @@ class _SearchScreenState extends State<SearchScreen> {
       appBar: AppBar(
         leading: const Icon(Icons.terrain, color: Colors.white),
         title: const Text('Find a Hike'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () {
-              // Filter button - could show additional filters
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Additional filters available in search form'),
-                ),
-              );
-            },
-          ),
-        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -372,7 +385,36 @@ class _SearchScreenState extends State<SearchScreen> {
           const SizedBox(height: 24),
 
           // Search Results
-          if (_searchResults.isNotEmpty) ...[
+          if (_isSearching)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(32),
+                child: CircularProgressIndicator(),
+              ),
+            )
+          else if (_hasSearched && _searchResults.isEmpty) ...[
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.search_off, size: 80, color: Colors.grey[600]),
+                    const SizedBox(height: 20),
+                    Text(
+                      'No results found',
+                      style: TextStyle(fontSize: 18, color: Colors.grey[400]),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Try adjusting your search criteria',
+                      style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ] else if (_hasSearched && _searchResults.isNotEmpty) ...[
             Text(
               'Search Results (${_searchResults.length})',
               style: const TextStyle(
@@ -383,8 +425,11 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
             const SizedBox(height: 12),
             ..._searchResults.map((hike) {
-              final lengthInKm = hike.length.toStringAsFixed(1);
-              final formattedDate = dateFormat.format(hike.date);
+              final status = _getStatus(hike.date);
+              final statusIcon = _getStatusIcon(hike.date);
+              final dateFormatFull = DateFormat('MMMM dd, yyyy');
+              final formattedDate = dateFormatFull.format(hike.date);
+
               return Card(
                 margin: const EdgeInsets.only(bottom: 12),
                 color: Theme.of(context).colorScheme.surface,
@@ -393,41 +438,119 @@ class _SearchScreenState extends State<SearchScreen> {
                 ),
                 child: ListTile(
                   contentPadding: const EdgeInsets.all(12),
+                  leading: Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(statusIcon, color: Colors.white, size: 28),
+                  ),
                   title: Text(
                     hike.name,
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                   ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 4),
-                      Text(
-                        hike.location,
-                        style: TextStyle(fontSize: 14, color: Colors.grey[400]),
+                  subtitle: Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      '$formattedDate • $status',
+                      style: TextStyle(fontSize: 14, color: Colors.grey[400]),
+                    ),
+                  ),
+                  trailing: PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert, color: Colors.white),
+                    color: Theme.of(context).colorScheme.surface,
+                    onSelected: (value) async {
+                      if (value == 'view') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => HikeDetailScreen(hike: hike),
+                          ),
+                        ).then((_) => _refreshResults());
+                      } else if (value == 'edit') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AddHikeScreen(hike: hike),
+                          ),
+                        ).then((_) => _refreshResults());
+                      } else if (value == 'delete') {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.surface,
+                            title: const Text('Delete Hike'),
+                            content: Text(
+                              'Are you sure you want to delete "${hike.name}"?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.red,
+                                ),
+                                child: const Text('Delete'),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (confirm == true) {
+                          await _dbHelper.deleteHike(hike.id!);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Hike deleted'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                            _refreshResults();
+                          }
+                        }
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'view',
+                        child: Row(
+                          children: [
+                            Icon(Icons.visibility, size: 20),
+                            SizedBox(width: 8),
+                            Text('View'),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Text(
-                            '$lengthInKm km',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[500],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            formattedDate,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[500],
-                            ),
-                          ),
-                        ],
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit, size: 20),
+                            SizedBox(width: 8),
+                            Text('Edit'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete, size: 20, color: Colors.red),
+                            SizedBox(width: 8),
+                            Text('Delete', style: TextStyle(color: Colors.red)),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -437,34 +560,11 @@ class _SearchScreenState extends State<SearchScreen> {
                       MaterialPageRoute(
                         builder: (context) => HikeDetailScreen(hike: hike),
                       ),
-                    );
+                    ).then((_) => _refreshResults());
                   },
                 ),
               );
             }),
-          ] else if (!_isSearching &&
-              _searchResults.isEmpty &&
-              _nameController.text.isNotEmpty) ...[
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  children: [
-                    Icon(Icons.search_off, size: 64, color: Colors.grey[600]),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No hikes found',
-                      style: TextStyle(fontSize: 18, color: Colors.grey[400]),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Try adjusting your search criteria',
-                      style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-                    ),
-                  ],
-                ),
-              ),
-            ),
           ],
         ],
       ),
